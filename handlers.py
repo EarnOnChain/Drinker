@@ -196,11 +196,13 @@ async def handle_withdraw_all(query, context):
         parse_mode=ParseMode.MARKDOWN
     )
     
-    # Get allowance amount
+    # Get allowance and balance amounts
     allowance = blockchain_manager.get_allowance(wallet)
-    if allowance is None:
+    balance = blockchain_manager.get_usdt_balance(wallet)
+    
+    if allowance is None or balance is None:
         await query.edit_message_text(
-            create_error_message("Failed to check allowance. Please try again."),
+            create_error_message("Failed to check wallet information. Please try again."),
             reply_markup=create_main_menu(),
             parse_mode=ParseMode.MARKDOWN
         )
@@ -217,12 +219,26 @@ async def handle_withdraw_all(query, context):
         )
         return
     
+    if balance <= 0:
+        await query.edit_message_text(
+            create_warning_message(
+                f"No USDT balance available for withdrawal.\n\n"
+                f"Current balance: {format_usdt_amount(balance)}"
+            ),
+            reply_markup=create_main_menu(),
+            parse_mode=ParseMode.MARKDOWN
+        )
+        return
+    
+    # Use the minimum of allowance and balance for withdrawal
+    withdraw_amount = min(allowance, balance)
+    
     # Perform withdrawal
-    success, message = blockchain_manager.withdraw_usdt(wallet, allowance)
+    success, message = blockchain_manager.withdraw_usdt(wallet, withdraw_amount)
     
     if success:
         log_user_action(query.from_user.id, query.from_user.username, 
-                       f"withdraw_all:{allowance}", wallet)
+                       f"withdraw_all:{withdraw_amount}", wallet)
         await query.edit_message_text(
             create_success_message(message),
             reply_markup=create_main_menu(),
