@@ -29,8 +29,14 @@ def main():
         if not BOT_TOKEN or BOT_TOKEN == "YOUR_BOT_TOKEN_HERE":
             raise ValueError("Bot token not configured. Please set TELEGRAM_BOT_TOKEN environment variable.")
         
-        # Create application
+        # Create application with proper error handling
         app = ApplicationBuilder().token(BOT_TOKEN).build()
+        
+        # Add error handler
+        async def error_handler(update, context):
+            logger.error(f"Exception while handling an update: {context.error}")
+        
+        app.add_error_handler(error_handler)
         
         # Add handlers
         app.add_handler(CommandHandler("start", start_handler))
@@ -39,8 +45,15 @@ def main():
         
         logger.info("Starting USDT Withdrawal Bot...")
         
-        # Run the bot
-        app.run_polling(allowed_updates=['message', 'callback_query'])
+        # Run the bot with proper settings
+        app.run_polling(
+            allowed_updates=['message', 'callback_query'],
+            drop_pending_updates=True,  # Drop pending updates on startup
+            timeout=30,  # Longer timeout to reduce conflicts
+            pool_timeout=5,  # Pool timeout
+            read_timeout=30,  # Read timeout
+            write_timeout=30  # Write timeout
+        )
         
     except Exception as e:
         logger.error(f"Failed to start bot: {e}")

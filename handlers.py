@@ -48,7 +48,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = query.from_user
     data = query.data
     
-    # Rate limiting check
+    # Rate limiting check (reduced from 30 to 5 seconds)
     if is_rate_limited(user.id, RATE_LIMIT_SECONDS):
         await query.edit_message_text(
             create_warning_message(
