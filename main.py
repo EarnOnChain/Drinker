@@ -48,11 +48,7 @@ def main():
         # Run the bot with proper settings
         app.run_polling(
             allowed_updates=['message', 'callback_query'],
-            drop_pending_updates=True,  # Drop pending updates on startup
-            timeout=30,  # Longer timeout to reduce conflicts
-            pool_timeout=5,  # Pool timeout
-            read_timeout=30,  # Read timeout
-            write_timeout=30  # Write timeout
+            drop_pending_updates=True  # Drop pending updates on startup
         )
         
     except Exception as e:
