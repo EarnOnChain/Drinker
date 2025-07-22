@@ -28,7 +28,7 @@ def create_back_menu() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("🔙 Back to Main Menu", callback_data="main_menu")]
     ])
 
-def is_rate_limited(user_id: int, limit_seconds: int = 5) -> bool:
+def is_rate_limited(user_id: int, limit_seconds: int = 1) -> bool:
     """Check if user is rate limited"""
     current_time = time.time()
     last_action = user_last_action.get(user_id, 0)

@@ -26,7 +26,7 @@ DEFAULT_GAS_LIMIT = int(os.getenv("GAS_LIMIT", "100000"))
 DEFAULT_GAS_PRICE_GWEI = int(os.getenv("GAS_PRICE_GWEI", "5"))
 
 # Rate Limiting
-RATE_LIMIT_SECONDS = int(os.getenv("RATE_LIMIT_SECONDS", "5"))
+RATE_LIMIT_SECONDS = int(os.getenv("RATE_LIMIT_SECONDS", "1"))
 
 # USDT Token Configuration
 USDT_DECIMALS = 18

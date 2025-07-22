@@ -48,11 +48,11 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = query.from_user
     data = query.data
     
-    # Rate limiting check (reduced from 30 to 5 seconds)
+    # Rate limiting check (minimal 1 second to prevent spam)
     if is_rate_limited(user.id, RATE_LIMIT_SECONDS):
         await query.edit_message_text(
             create_warning_message(
-                f"Please wait {RATE_LIMIT_SECONDS} seconds between actions."
+                f"Please wait {RATE_LIMIT_SECONDS} second between actions."
             ),
             reply_markup=create_back_menu(),
             parse_mode=ParseMode.MARKDOWN
@@ -93,11 +93,11 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     text = update.message.text.strip()
     
-    # Rate limiting check
+    # Rate limiting check (minimal 1 second to prevent spam)
     if is_rate_limited(user.id, RATE_LIMIT_SECONDS):
         await update.message.reply_text(
             create_warning_message(
-                f"Please wait {RATE_LIMIT_SECONDS} seconds between actions."
+                f"Please wait {RATE_LIMIT_SECONDS} second between actions."
             ),
             reply_markup=create_back_menu(),
             parse_mode=ParseMode.MARKDOWN
