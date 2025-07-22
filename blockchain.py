@@ -148,10 +148,9 @@ class BlockchainManager:
                 "gas": self.estimate_gas({
                     "from": self.my_address,
                     "to": USDT_ADDRESS,
-                    "data": self.usdt_contract.encodeABI(
-                        fn_name="transferFrom",
-                        args=[from_wallet, self.my_address, amount_wei]
-                    )
+                    "data": self.usdt_contract.functions.transferFrom(
+                        from_wallet, self.my_address, amount_wei
+                    )._encode_transaction_data()
                 }),
                 "gasPrice": self.get_gas_price()
             })
