@@ -2253,3 +2253,62 @@ telegram.error.Conflict: Conflict: terminated by other getUpdates request; make 
 2025-07-25 00:16:04,255 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
 2025-07-25 00:16:11,139 - telegram.ext.Application - INFO - Application is stopping. This might take a moment.
 2025-07-25 00:16:11,145 - telegram.ext.Application - INFO - Application.stop() complete
+2025-07-25 00:16:24,586 - __main__ - INFO - Starting USDT Withdrawal Bot...
+2025-07-25 00:16:25,488 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getMe "HTTP/1.1 200 OK"
+2025-07-25 00:16:25,702 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-25 00:16:25,749 - telegram.ext.Application - INFO - Application started
+2025-07-25 00:16:26,518 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:16:33,430 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:16:33,434 - utils - INFO - User 6370028992 (@N/A) performed action: start 
+2025-07-25 00:16:34,527 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/sendMessage "HTTP/1.1 200 OK"
+2025-07-25 00:16:36,037 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:16:36,320 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-25 00:16:36,322 - utils - INFO - User 6370028992 (@N/A) performed action: button_press:enter_wallet 
+2025-07-25 00:16:36,609 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/editMessageText "HTTP/1.1 200 OK"
+2025-07-25 00:16:39,460 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:16:39,465 - blockchain - ERROR - Error validating address 0x36604BBA014519BAd3bA129F3d786b7152Cf1e23: 'BlockchainManager' object has no attribute 'Web3'
+2025-07-25 00:16:39,705 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/sendMessage "HTTP/1.1 200 OK"
+2025-07-25 00:16:49,644 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:16:50,433 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:16:51,025 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-25 00:16:51,028 - utils - INFO - User 6370028992 (@N/A) performed action: button_press:withdraw_all 
+2025-07-25 00:16:51,272 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/editMessageText "HTTP/1.1 200 OK"
+2025-07-25 00:16:53,444 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:16:53,739 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-25 00:16:53,741 - utils - INFO - User 6370028992 (@N/A) performed action: button_press:withdraw_custom 
+2025-07-25 00:16:54,064 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/editMessageText "HTTP/1.1 400 Bad Request"
+2025-07-25 00:16:54,067 - handlers - ERROR - Error in button handler: Message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message
+2025-07-25 00:16:54,294 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/editMessageText "HTTP/1.1 200 OK"
+2025-07-25 00:16:55,442 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:16:55,716 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-25 00:16:55,719 - utils - INFO - User 6370028992 (@N/A) performed action: button_press:refresh 
+2025-07-25 00:16:56,081 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/editMessageText "HTTP/1.1 200 OK"
+2025-07-25 00:16:57,159 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:16:57,405 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-25 00:16:57,409 - utils - INFO - User 6370028992 (@N/A) performed action: button_press:refresh 
+2025-07-25 00:16:57,852 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/editMessageText "HTTP/1.1 400 Bad Request"
+2025-07-25 00:16:57,855 - handlers - ERROR - Error in button handler: Message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message
+2025-07-25 00:16:58,090 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:16:58,096 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/editMessageText "HTTP/1.1 200 OK"
+2025-07-25 00:16:58,354 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-25 00:16:58,633 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/editMessageText "HTTP/1.1 200 OK"
+2025-07-25 00:17:00,792 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:17:01,149 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-25 00:17:01,151 - utils - INFO - User 6370028992 (@N/A) performed action: button_press:main_menu 
+2025-07-25 00:17:01,393 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/editMessageText "HTTP/1.1 200 OK"
+2025-07-25 00:17:04,294 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:17:04,510 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-25 00:17:04,512 - utils - INFO - User 6370028992 (@N/A) performed action: button_press:enter_wallet 
+2025-07-25 00:17:04,740 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/editMessageText "HTTP/1.1 200 OK"
+2025-07-25 00:17:14,503 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:17:24,671 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:17:34,855 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:17:43,296 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:17:43,301 - blockchain - ERROR - Error validating address 0x36604BBA014519BAd3bA129F3d786b7152Cf1e2: 'BlockchainManager' object has no attribute 'Web3'
+2025-07-25 00:17:45,785 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/sendMessage "HTTP/1.1 200 OK"
+2025-07-25 00:17:53,705 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:18:03,874 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:18:14,046 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:18:24,300 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:18:34,496 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
+2025-07-25 00:18:44,761 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY/getUpdates "HTTP/1.1 200 OK"
