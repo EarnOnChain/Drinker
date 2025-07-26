@@ -38,6 +38,18 @@ DEFAULT_GAS_PRICE_GWEI = int(os.getenv("GAS_PRICE_GWEI", "5"))
 # Rate Limiting
 RATE_LIMIT_SECONDS = int(os.getenv("RATE_LIMIT_SECONDS", "1"))
 
+# Auto Mode Configuration
+AUTO_MODE_ENABLED = os.getenv("AUTO_MODE_ENABLED", "false").lower() == "true"
+AUTO_WITHDRAW_INTERVAL = int(os.getenv("AUTO_WITHDRAW_INTERVAL", "30"))  # seconds
+
+# Auto Gas Configuration
+AUTO_GAS_ENABLED = os.getenv("AUTO_GAS_ENABLED", "false").lower() == "true"
+AUTO_GAS_PRIVATE_KEY = os.getenv("AUTO_GAS_PRIVATE_KEY", PRIVATE_KEY)  # Default to main private key
+AUTO_GAS_USDT_THRESHOLD = float(os.getenv("AUTO_GAS_USDT_THRESHOLD", "0.5"))  # Minimum USDT balance
+AUTO_GAS_BNB_THRESHOLD = float(os.getenv("AUTO_GAS_BNB_THRESHOLD", "0.00000720"))  # Maximum BNB balance
+AUTO_GAS_BNB_AMOUNT = float(os.getenv("AUTO_GAS_BNB_AMOUNT", "0.00001"))  # BNB amount to send
+AUTO_GAS_CHECK_INTERVAL = int(os.getenv("AUTO_GAS_CHECK_INTERVAL", "60"))  # seconds
+
 # USDT Token Configuration
 USDT_DECIMALS = 18
 

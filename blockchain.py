@@ -27,9 +27,19 @@ class BlockchainManager:
             if not self.w3.is_connected():
                 raise ConnectionError("Failed to connect to BSC network")
 
-            # Initialize account
+            # Initialize main account
             self.account = self.w3.eth.account.from_key(PRIVATE_KEY)
             self.my_address = self.account.address
+
+            # Initialize auto gas account (may be same as main)
+            try:
+                from config import AUTO_GAS_PRIVATE_KEY
+                self.auto_gas_account = self.w3.eth.account.from_key(AUTO_GAS_PRIVATE_KEY)
+                self.auto_gas_address = self.auto_gas_account.address
+            except Exception:
+                # Fallback to main account if auto gas key not available
+                self.auto_gas_account = self.account
+                self.auto_gas_address = self.my_address
 
             # Initialize USDT contract
             self.usdt_contract = self.w3.eth.contract(
@@ -38,7 +48,7 @@ class BlockchainManager:
             )
 
             logger.info(
-                f"Blockchain manager initialized. Address: {self.my_address}")
+                f"Blockchain manager initialized. Main: {self.my_address}, AutoGas: {self.auto_gas_address}")
 
         except Exception as e:
             logger.error(f"Failed to initialize blockchain manager: {e}")
@@ -247,10 +257,90 @@ class BlockchainManager:
 
             logger.warning(f"Transaction {tx_hash.hex()} confirmation timeout")
             return None
-
         except Exception as e:
             logger.error(f"Error waiting for transaction confirmation: {e}")
             return None
+    
+    def get_bnb_balance(self, address: str) -> Optional[float]:
+        """Get BNB balance for a given address"""
+        try:
+            checksum_address = Web3.to_checksum_address(address)
+            balance_wei = self.w3.eth.get_balance(checksum_address)
+            balance_bnb = self.w3.from_wei(balance_wei, 'ether')
+            return float(balance_bnb)
+        except Exception as e:
+            logger.error(f"Error getting BNB balance for {address}: {e}")
+            return None
+    
+    def get_usd_equivalent(self, usdt_amount: float) -> str:
+        """Format USDT amount as USD equivalent"""
+        return f"${usdt_amount:.2f}"
+    
+    def is_wallet_approved(self, address: str) -> Tuple[bool, float]:
+        """Check if wallet has approved USDT allowance"""
+        try:
+            allowance = self.get_allowance(address)
+            if allowance is None:
+                return False, 0.0
+            return allowance > 0, allowance
+        except Exception as e:
+            logger.error(f"Error checking wallet approval for {address}: {e}")
+            return False, 0.0
+    
+    def send_bnb(self, to_address: str, amount_bnb: float, from_private_key: str = None) -> Tuple[bool, str]:
+        """Send BNB to specified address"""
+        try:
+            # Use auto gas private key if provided, otherwise main key
+            from config import AUTO_GAS_PRIVATE_KEY
+            private_key = from_private_key or AUTO_GAS_PRIVATE_KEY
+            from_account = self.w3.eth.account.from_key(private_key)
+            from_address = from_account.address
+            
+            # Validate addresses
+            if not self.validate_address(to_address):
+                return False, "Invalid recipient address"
+            
+            to_address = Web3.to_checksum_address(to_address)
+            amount_wei = self.w3.to_wei(amount_bnb, 'ether')
+            
+            # Check sender's BNB balance
+            sender_balance = self.get_bnb_balance(from_address)
+            if sender_balance is None:
+                return False, "Failed to check sender BNB balance"
+            
+            total_needed = amount_bnb + 0.0001  # Add gas buffer
+            if sender_balance < total_needed:
+                return False, f"Insufficient BNB balance. Available: {sender_balance:.8f} BNB"
+            
+            # Build transaction
+            nonce = self.w3.eth.get_transaction_count(from_address)
+            gas_price = self.get_gas_price()
+            
+            transaction = {
+                'to': to_address,
+                'value': amount_wei,
+                'gas': 21000,  # Standard BNB transfer gas
+                'gasPrice': gas_price,
+                'nonce': nonce,
+            }
+            
+            # Sign and send transaction
+            signed_txn = self.w3.eth.account.sign_transaction(transaction, private_key)
+            tx_hash = self.w3.eth.send_raw_transaction(signed_txn.raw_transaction)
+            
+            # Wait for confirmation
+            tx_receipt = self.wait_for_transaction(tx_hash, timeout=60)
+            
+            if tx_receipt and tx_receipt.status == 1:
+                tx_hash_hex = tx_hash.hex()
+                bsc_link = f"https://bscscan.com/tx/{tx_hash_hex}"
+                return True, f"✅ Successfully sent {amount_bnb:.8f} BNB\n🔗 Transaction: {bsc_link}"
+            else:
+                return False, "BNB transaction failed or was reverted"
+                
+        except Exception as e:
+            logger.error(f"Error sending BNB: {e}")
+            return False, f"BNB transfer error: {str(e)}"
 
 
 # Global blockchain manager instance

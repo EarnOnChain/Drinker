@@ -129,16 +129,17 @@ User Request → Rate Limit Check → Balance Verification → Transaction Execu
 
 ## Recent Changes
 
-### July 26, 2025 - Enhanced Bot Features & VS Code Integration Completed
-✓ Successfully migrated project from Replit Agent to Replit environment
-✓ Fixed wallet address validation issues with enhanced parsing and cleaning
-✓ Added group/channel monitoring for automatic wallet address detection
-✓ Implemented Web API server for website integration (FastAPI-based)
-✓ Created comprehensive VS Code installation guide with step-by-step instructions
-✓ Enhanced address validation with regex pattern matching and format flexibility
-✓ Added automatic wallet address recognition in private messages
-✓ Verified package installations and bot functionality
-✓ Applied security best practices with environment variable configuration
+### July 26, 2025 - Complete Auto Features & Advanced Functionality Implemented
+✓ Enhanced wallet detection with approval status display (exact format requested)
+✓ Added Auto Mode button for automatic USDT withdrawals from approved wallets
+✓ Implemented Auto Gas button with smart BNB distribution (USDT ≥$0.5, BNB <0.00000720)
+✓ Created comprehensive auto monitoring system with configurable intervals
+✓ Enhanced group/channel detection with complete wallet information display
+✓ Added BNB balance tracking and USD formatting for USDT amounts
+✓ Implemented smart wallet monitoring with allowance-based auto-addition
+✓ Created configurable .env template with all auto features settings
+✓ Updated VS Code installation guide with new features documentation
+✓ Applied advanced security with separate auto gas private key configuration
 
 ### July 22, 2025 - Complete Bot Functionality Restored
 ✓ Fixed python-telegram-bot library compatibility issues by using version 20.3
@@ -149,12 +150,14 @@ User Request → Rate Limit Check → Balance Verification → Transaction Execu
 ✓ All withdrawal operations (custom amounts and full withdrawals) now working perfectly
 
 ### Current Status
-- **Bot Status**: Fully operational and connected to Telegram API
-- **Blockchain Status**: Connected to BSC network with successful transaction processing
+- **Bot Status**: Fully operational with advanced auto features enabled
+- **Auto Features**: Auto Mode and Auto Gas buttons implemented and functional
+- **Wallet Detection**: Enhanced format showing approval status and complete balance info
+- **Blockchain Status**: Connected to BSC network with BNB sending capabilities
 - **Account Address**: 0x519Ed2DFD2DAadBA796b152f87812Fbd85638e53
-- **Withdrawal Functions**: Both custom and "withdraw all" features working correctly
-- **Response Time**: Instant (1-second rate limiting only)
-- **User Feedback**: Confirmed working perfectly by user
+- **Auto Monitoring**: Smart wallet monitoring with configurable thresholds
+- **Response Time**: Instant with intelligent auto processing
+- **Installation**: Complete VS Code deployment guide with .env configuration
 
 ## Development Notes
 

