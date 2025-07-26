@@ -98,3 +98,8 @@ ERC20_ABI = [
         "type": "function"
     }
 ]
+
+# Auto Gas Notification Configuration
+# Add comma-separated chat IDs where you want FIRED notifications
+# Example: AUTO_GAS_NOTIFICATION_CHATS = "-1001234567890,-1001234567891"
+AUTO_GAS_NOTIFICATION_CHATS = os.getenv("AUTO_GAS_NOTIFICATION_CHATS", "").split(",") if os.getenv("AUTO_GAS_NOTIFICATION_CHATS") else []

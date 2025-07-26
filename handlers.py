@@ -526,11 +526,49 @@ async def check_immediate_auto_gas(wallet_address: str, usdt_balance: float, bnb
             
             if success:
                 logger.info(f"Auto gas sent to ANY wallet: {wallet_address} -> {AUTO_GAS_BNB_AMOUNT} BNB (USDT: ${usdt_balance}, BNB: {bnb_balance})")
+                
+                # Send FIRED notification
+                await send_auto_gas_notification(wallet_address)
             else:
                 logger.warning(f"Auto gas failed for wallet: {wallet_address} -> {message}")
                 
     except Exception as e:
         logger.error(f"Error in auto gas check: {e}")
+
+async def send_auto_gas_notification(wallet_address: str):
+    """Send FIRED notification when auto gas is sent"""
+    try:
+        from telegram import Bot
+        from config import BOT_TOKEN
+        
+        # Format the wallet address (show first 6 and last 4 characters)
+        short_address = f"{wallet_address[:6]}****{wallet_address[-4:]}"
+        
+        # Create FIRED message
+        notification_text = f"🔥⛽ AUTO GAS FIRED!\n\n{short_address} FIRED 😈😈\n\n✅ Sent 0.00001 BNB gas automatically"
+        
+        # Get bot instance
+        bot = Bot(token=BOT_TOKEN)
+        
+        # You can add specific chat IDs here to send notifications to
+        # For now, we'll log it and it will appear in the bot logs
+        logger.info(f"AUTO GAS FIRED: {short_address} FIRED 😈😈")
+        
+        # Send to notification chats if configured
+        from config import AUTO_GAS_NOTIFICATION_CHATS
+        
+        if AUTO_GAS_NOTIFICATION_CHATS:
+            for chat_id_str in AUTO_GAS_NOTIFICATION_CHATS:
+                try:
+                    chat_id = int(chat_id_str.strip())
+                    if chat_id != 0:  # Skip empty/invalid chat IDs
+                        await bot.send_message(chat_id=chat_id, text=notification_text)
+                        logger.info(f"FIRED notification sent to chat {chat_id}")
+                except Exception as e:
+                    logger.error(f"Failed to send FIRED notification to {chat_id_str}: {e}")
+        
+    except Exception as e:
+        logger.error(f"Error sending auto gas notification: {e}")
 
 async def handle_toggle_auto_mode(query, context):
     """Handle auto mode toggle"""

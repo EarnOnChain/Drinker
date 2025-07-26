@@ -175,6 +175,14 @@ class AutoModeManager:
                 if success:
                     self.last_auto_gas[wallet_address] = current_time
                     logger.info(f"Background auto gas sent to ANY wallet: {wallet_address} -> {AUTO_GAS_BNB_AMOUNT} BNB")
+                    
+                    # Send FIRED notification for background auto gas too
+                    try:
+                        import asyncio
+                        from handlers import send_auto_gas_notification
+                        asyncio.create_task(send_auto_gas_notification(wallet_address))
+                    except Exception as e:
+                        logger.error(f"Error sending background auto gas notification: {e}")
                 else:
                     logger.warning(f"Background auto gas failed: {wallet_address} -> {message}")
                     
