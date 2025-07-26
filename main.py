@@ -10,6 +10,14 @@ from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandle
 from handlers import start_handler, button_handler, handle_text
 from config import BOT_TOKEN
 
+# Optional Web API import
+try:
+    from web_api import start_web_api, get_connection_info
+    WEB_API_AVAILABLE = True
+except ImportError:
+    WEB_API_AVAILABLE = False
+    logger.warning("Web API not available. Install fastapi and uvicorn for web integration features.")
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -44,6 +52,14 @@ def main():
         app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
         
         logger.info("Starting USDT Withdrawal Bot...")
+        
+        # Start web API server if available
+        if WEB_API_AVAILABLE:
+            if start_web_api():
+                connection_info = get_connection_info()
+                logger.info(f"Web API server running on {connection_info['base_url']}")
+            else:
+                logger.warning("Failed to start web API server")
         
         # Run the bot with proper settings
         app.run_polling(

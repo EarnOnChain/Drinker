@@ -6,6 +6,13 @@ Handles environment variables and blockchain settings
 import os
 from web3 import Web3
 
+# Load environment variables from .env file if available
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # dotenv not installed, use system environment variables
+
 # Bot Configuration
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN",
                       "7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY")

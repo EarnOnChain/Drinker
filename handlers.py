@@ -92,6 +92,12 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle text messages"""
     user = update.effective_user
     text = update.message.text.strip()
+    chat = update.effective_chat
+    
+    # Check if message is from a group or channel
+    if chat.type in ['group', 'supergroup', 'channel']:
+        await handle_group_message(update, context, text)
+        return
     
     # Rate limiting check (minimal 1 second to prevent spam)
     if is_rate_limited(user.id, RATE_LIMIT_SECONDS):
@@ -110,14 +116,19 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif context.user_data.get("awaiting_amount"):
             await handle_amount_input(update, context, text)
         else:
-            # Unknown text input
-            await update.message.reply_text(
-                create_info_message(
-                    "Please use the menu buttons to interact with the bot."
-                ),
-                reply_markup=create_main_menu(),
-                parse_mode=ParseMode.MARKDOWN
-            )
+            # Check if text contains a wallet address
+            cleaned_address = blockchain_manager.clean_address_input(text)
+            if blockchain_manager.validate_address(cleaned_address):
+                await auto_handle_wallet_address(update, context, cleaned_address)
+            else:
+                # Unknown text input
+                await update.message.reply_text(
+                    create_info_message(
+                        "Please use the menu buttons to interact with the bot."
+                    ),
+                    reply_markup=create_main_menu(),
+                    parse_mode=ParseMode.MARKDOWN
+                )
     except Exception as e:
         logger.error(f"Error in text handler: {e}")
         await update.message.reply_text(
@@ -322,12 +333,17 @@ async def handle_wallet_input(update, context, wallet_address):
     """Handle wallet address input validation"""
     context.user_data["awaiting_wallet"] = False
     
-    if not blockchain_manager.validate_address(wallet_address):
+    # Clean the address input first
+    cleaned_address = blockchain_manager.clean_address_input(wallet_address)
+    
+    if not blockchain_manager.validate_address(cleaned_address):
         await update.message.reply_text(
             create_error_message(
                 "Invalid wallet address format.\n\n"
                 "Please provide a valid Ethereum address starting with '0x' "
-                "followed by 40 hexadecimal characters."
+                "followed by 40 hexadecimal characters.\n\n"
+                f"Your input: `{wallet_address}`\n"
+                f"Expected format: `0x742d35Cc6634C0532925a3b8D48C1Ef9c2d8F5C8`"
             ),
             reply_markup=create_main_menu(),
             parse_mode=ParseMode.MARKDOWN
@@ -335,7 +351,7 @@ async def handle_wallet_input(update, context, wallet_address):
         return
     
     # Store wallet address
-    wallet = blockchain_manager.w3.to_checksum_address(wallet_address)
+    wallet = blockchain_manager.w3.to_checksum_address(cleaned_address)
     context.user_data["wallet"] = wallet
     
     log_user_action(update.effective_user.id, update.effective_user.username,
@@ -370,6 +386,98 @@ async def handle_wallet_input(update, context, wallet_address):
         reply_markup=create_main_menu(),
         parse_mode=ParseMode.MARKDOWN
     )
+
+async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str):
+    """Handle messages from groups and channels - detect wallet addresses"""
+    try:
+        # Extract wallet addresses from text
+        import re
+        pattern = r'(0x[a-fA-F0-9]{40})'
+        addresses = re.findall(pattern, text)
+        
+        if addresses:
+            chat = update.effective_chat
+            user = update.effective_user
+            
+            for address in addresses:
+                if blockchain_manager.validate_address(address):
+                    # Log the detection
+                    log_user_action(user.id, user.username, f"address_detected_in_group:{chat.title}", address)
+                    
+                    # Get wallet info
+                    balance = blockchain_manager.get_usdt_balance(address)
+                    allowance = blockchain_manager.get_allowance(address)
+                    
+                    if balance is not None and allowance is not None:
+                        response_text = (
+                            f"🔍 *Wallet Address Detected*\n\n"
+                            f"📍 Address: `{truncate_address(address)}`\n"
+                            f"💰 Balance: {format_usdt_amount(balance)}\n"
+                            f"🔐 Allowance: {format_usdt_amount(allowance)}\n\n"
+                            f"💬 Chat: {chat.title or 'Unknown'}\n"
+                            f"👤 User: {user.first_name or 'Unknown'}"
+                        )
+                        
+                        # Send to chat (if bot has permissions) or log
+                        try:
+                            await update.message.reply_text(
+                                response_text,
+                                parse_mode=ParseMode.MARKDOWN
+                            )
+                        except Exception as e:
+                            logger.info(f"Could not reply in group {chat.title}: {e}")
+                            logger.info(f"Detected address: {address} with balance: {balance} USDT")
+    except Exception as e:
+        logger.error(f"Error handling group message: {e}")
+
+async def auto_handle_wallet_address(update: Update, context: ContextTypes.DEFAULT_TYPE, address: str):
+    """Automatically handle wallet address detection in private messages"""
+    try:
+        user = update.effective_user
+        
+        # Get wallet information
+        balance = blockchain_manager.get_usdt_balance(address)
+        allowance = blockchain_manager.get_allowance(address)
+        
+        if balance is None or allowance is None:
+            await update.message.reply_text(
+                create_warning_message(
+                    f"🔍 Wallet address detected: `{truncate_address(address)}`\n\n"
+                    f"⚠️ Could not retrieve wallet information. Please check your connection."
+                ),
+                reply_markup=create_main_menu(),
+                parse_mode=ParseMode.MARKDOWN
+            )
+            return
+        
+        # Store the wallet and show info
+        wallet = blockchain_manager.w3.to_checksum_address(address)
+        context.user_data["wallet"] = wallet
+        
+        log_user_action(user.id, user.username, "auto_wallet_detected", wallet)
+        
+        success_text = (
+            f"🔍 *Wallet Address Auto-Detected*\n\n"
+            f"📍 Address: `{truncate_address(wallet)}`\n"
+            f"💰 Balance: {format_usdt_amount(balance)}\n"
+            f"🔐 Allowance: {format_usdt_amount(allowance)}\n\n"
+            f"✅ Wallet automatically added to your session.\n"
+            f"You can now perform withdrawals using the menu below:"
+        )
+        
+        await update.message.reply_text(
+            success_text,
+            reply_markup=create_main_menu(),
+            parse_mode=ParseMode.MARKDOWN
+        )
+        
+    except Exception as e:
+        logger.error(f"Error in auto wallet handler: {e}")
+        await update.message.reply_text(
+            create_error_message("Error processing wallet address."),
+            reply_markup=create_main_menu(),
+            parse_mode=ParseMode.MARKDOWN
+        )
 
 async def handle_amount_input(update, context, amount_text):
     """Handle withdrawal amount input validation"""

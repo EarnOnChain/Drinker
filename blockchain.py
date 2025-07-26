@@ -47,10 +47,55 @@ class BlockchainManager:
     def validate_address(self, address: str) -> bool:
         """Validate if the given string is a valid Ethereum address"""
         try:
-            return self.w3.is_address(address)
+            # Clean the address (remove whitespace and common prefixes/suffixes)
+            address = address.strip().lower()
+            
+            # Handle common formats
+            if address.startswith('0x'):
+                address = address[2:]
+            
+            # Check if it's exactly 40 hexadecimal characters
+            if len(address) != 40:
+                return False
+                
+            # Check if all characters are hexadecimal
+            try:
+                int(address, 16)
+            except ValueError:
+                return False
+            
+            # Reconstruct the address with 0x prefix
+            full_address = '0x' + address
+            
+            # Use Web3's built-in validation
+            return self.w3.is_address(full_address)
         except Exception as e:
             logger.error(f"Error validating address {address}: {e}")
             return False
+    
+    def clean_address_input(self, address: str) -> str:
+        """Clean and format address input"""
+        try:
+            # Remove whitespace and common text
+            address = address.strip()
+            
+            # Handle common formats and extract address
+            import re
+            # Pattern to find Ethereum addresses
+            pattern = r'(0x[a-fA-F0-9]{40})'
+            match = re.search(pattern, address)
+            
+            if match:
+                return match.group(1)
+            
+            # If no 0x prefix, try to add it
+            if len(address) == 40 and all(c in '0123456789abcdefABCDEF' for c in address):
+                return '0x' + address
+            
+            return address
+        except Exception as e:
+            logger.error(f"Error cleaning address {address}: {e}")
+            return address
 
     def get_usdt_balance(self, address: str) -> Optional[float]:
         """Get USDT balance for a given address"""
