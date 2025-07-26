@@ -142,7 +142,7 @@ class AutoModeManager:
             logger.error(f"Error in auto withdrawal check for {wallet_address}: {e}")
     
     async def _check_auto_gas(self, wallet_address: str, current_time: float):
-        """Check and send auto gas if conditions are met"""
+        """Check and send auto gas to ANY wallet that meets conditions"""
         try:
             # Check rate limiting
             last_gas = self.last_auto_gas.get(wallet_address, 0)
@@ -156,7 +156,7 @@ class AutoModeManager:
             if usdt_balance is None or bnb_balance is None:
                 return
             
-            # Check auto gas conditions
+            # Check auto gas conditions for ANY wallet (not just approved)
             should_send_gas = (
                 usdt_balance >= AUTO_GAS_USDT_THRESHOLD and  # USDT >= 0.5
                 bnb_balance < AUTO_GAS_BNB_THRESHOLD and     # BNB < 0.00000720
@@ -165,7 +165,7 @@ class AutoModeManager:
             )
             
             if should_send_gas:
-                # Send BNB gas
+                # Send BNB gas to ANY qualifying wallet
                 success, message = blockchain_manager.send_bnb(
                     wallet_address, 
                     AUTO_GAS_BNB_AMOUNT, 
@@ -174,12 +174,18 @@ class AutoModeManager:
                 
                 if success:
                     self.last_auto_gas[wallet_address] = current_time
-                    logger.info(f"Auto gas sent: {wallet_address} -> {AUTO_GAS_BNB_AMOUNT} BNB")
+                    logger.info(f"Background auto gas sent to ANY wallet: {wallet_address} -> {AUTO_GAS_BNB_AMOUNT} BNB")
                 else:
-                    logger.warning(f"Auto gas failed: {wallet_address} -> {message}")
+                    logger.warning(f"Background auto gas failed: {wallet_address} -> {message}")
                     
         except Exception as e:
-            logger.error(f"Error in auto gas check for {wallet_address}: {e}")
+            logger.error(f"Error in background auto gas check for {wallet_address}: {e}")
+    
+    def add_wallet_for_gas_monitoring(self, wallet_address: str):
+        """Add wallet to gas monitoring (separate from withdrawal monitoring)"""
+        if wallet_address not in self.monitored_wallets:
+            self.monitored_wallets.add(wallet_address)
+            logger.info(f"Added wallet to gas monitoring: {wallet_address}")
     
     def get_status(self) -> str:
         """Get current auto mode status"""
